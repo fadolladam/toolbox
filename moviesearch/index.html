@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Browser - YTS & TMDB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-link.active { background-color: #3b82f6; color: white; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom styles for specific sections */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .logo-button.active { background-color: #eff6ff; border-right: 4px solid #3b82f6; font-weight: 700; }
+        .trip-tab.active { border-color: #3b82f6; color: #3b82f6; background-color: #eff6ff; }
+        
+        /* Styles for the new Movie Search module */
+        .movie-card-overlay { background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .group:hover .movie-card-overlay { opacity: 1; }
+        .tmdb-btn.active, .tmdb-tv-btn.active { background-color: #4f46e5; color: white; }
+        .modal-enter-active { opacity: 1 !important; transform: scale(1) !important; transition: all 300ms ease-out; }
+        .modal-leave-active { opacity: 0 !important; transform: scale(0.95) !important; transition: all 300ms ease-in; }
+        .aspect-w-16 { position: relative; padding-bottom: 56.25%; }
+        .aspect-w-16 iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    </style>
+</head>
+<body class="bg-gray-100 flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-md flex flex-col flex-shrink-0">
+        <div class="p-5 border-b flex items-center justify-between">
+            <div class="text-xl font-bold text-blue-600">Media Browser</div>
+            <a href="../index.html" title="Back to Toolbox Hub" class="px-2 py-1 text-[11px] font-bold rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 transition">← Hub</a>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" class="sidebar-link active flex items-center px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors" data-target="movie-search">
+                <i class="fas fa-film w-6 text-center"></i><span class="ml-3">Movie Search</span>
+            </a>
+            <a href="#" class="sidebar-link flex items-center px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors" data-target="tv-series">
+                <i class="fas fa-tv w-6 text-center"></i><span class="ml-3">TV Series</span>
+            </a>
+
+            <!-- Other Toolbox Tools -->
+            <div class="pt-6 mt-4 border-t border-slate-100">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 px-3 block mb-2">Other Utilities</span>
+                <a href="../phone-validator/index.html" class="flex items-center px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fas fa-phone-alt w-6 text-center text-indigo-500"></i><span class="ml-3">Phone Validator</span>
+                </a>
+                <a href="../mailforge/index.html" class="flex items-center px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                    <i class="fas fa-envelope w-6 text-center text-blue-500"></i><span class="ml-3">MailForge</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="flex-1 p-6 overflow-y-auto">
+
+        <!-- Movie Search Section -->
+        <section id="movie-search" class="content-section active">
+            <header class="mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-2">All-in-One Movie Browser</h1>
+                <p class="text-center text-gray-500 mb-8">Search with YTS & Discover with TMDB</p>
+            </header>
+            <section id="yts-section" class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4 border-l-4 border-indigo-500 pl-4">Search on YTS</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 p-4 bg-white rounded-lg shadow-lg">
+                    <div class="col-span-1 md:col-span-2 lg:col-span-5">
+                        <label for="searchInput" class="sr-only">Search Movies</label>
+                        <input type="text" id="searchInput" placeholder="Search YTS by title, actor, director..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-500">
+                    </div>
+                    <select id="qualityFilter" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Qualities</option><option value="480p">480p</option><option value="720p">720p</option><option value="1080p">1080p</option><option value="2160p">2160p (4K)</option><option value="3D">3D</option>
+                    </select>
+                    <select id="genreFilter" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="all">All Genres</option><option value="action">Action</option><option value="adventure">Adventure</option><option value="animation">Animation</option><option value="biography">Biography</option><option value="comedy">Comedy</option><option value="crime">Crime</option><option value="documentary">Documentary</option><option value="drama">Drama</option><option value="family">Family</option><option value="fantasy">Fantasy</option><option value="film-noir">Film-Noir</option><option value="history">History</option><option value="horror">Horror</option><option value="music">Music</option><option value="musical">Musical</option><option value="mystery">Mystery</option><option value="romance">Romance</option><option value="sci-fi">Sci-Fi</option><option value="sport">Sport</option><option value="thriller">Thriller</option><option value="war">War</option><option value="western">Western</option>
+                    </select>
+                    <select id="sortBy" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="date_added">Sort by: Latest</option><option value="like_count">Sort by: Likes</option><option value="rating">Sort by: Rating</option><option value="year">Sort by: Year</option><option value="download_count">Sort by: Downloads</option>
+                    </select>
+                    <select id="limitFilter" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="20">20 per page</option><option value="25">25 per page</option><option value="50">50 per page</option>
+                    </select>
+                    <button id="searchButton" class="w-full p-3 bg-indigo-600 hover:bg-indigo-700 rounded-md font-semibold transition-colors duration-300 text-white">Search</button>
+                </div>
+            </section>
+            <main id="yts-main">
+                <div id="loader" class="text-center py-10 hidden"><svg class="animate-spin h-10 w-10 text-gray-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg text-gray-600">Fetching movies...</p></div>
+                <div id="errorMessage" class="text-center py-10 hidden"><p class="text-red-500 text-xl">Could not fetch movies from YTS.</p></div>
+                <div id="noResultsMessage" class="text-center py-10 hidden"><p class="text-yellow-500 text-xl">No movies found on YTS.</p></div>
+                <div id="movieGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+                <footer id="pagination" class="flex justify-center items-center mt-12 space-x-4"></footer>
+            </main>
+            <hr class="border-gray-300 my-12">
+            <section id="tmdb-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4 border-l-4 border-teal-500 pl-4">Discover from TMDB</h2>
+                <div class="flex flex-wrap gap-4 items-center p-4 bg-white rounded-lg shadow-lg mb-6">
+                    <div class="flex-grow flex flex-wrap gap-2">
+                        <button data-type="popular" class="tmdb-btn p-3 bg-gray-200 hover:bg-indigo-600 hover:text-white rounded-md font-semibold transition-colors duration-300 active">Popular Movies</button>
+                        <button data-type="now_playing" class="tmdb-btn p-3 bg-gray-200 hover:bg-indigo-600 hover:text-white rounded-md font-semibold transition-colors duration-300">Now Playing</button>
+                        <button data-type="tv" class="tmdb-btn p-3 bg-gray-200 hover:bg-indigo-600 hover:text-white rounded-md font-semibold transition-colors duration-300">Popular TV Shows</button>
+                    </div>
+                    <select id="tmdbYearSelect" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
+                        <option value="">All Years</option>
+                    </select>
+                </div>
+                <div id="tmdb-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+            </section>
+        </section>
+
+        <!-- TV Series Section -->
+        <section id="tv-series" class="content-section">
+            <header class="mb-8">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 text-center mb-2">TV Series Browser</h1>
+                <p class="text-center text-gray-500 mb-8">Search Releases with EZTV & Discover Shows with TMDB</p>
+            </header>
+
+            <section id="eztv-section" class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4 border-l-4 border-indigo-500 pl-4">Search EZTV Torrents</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-white rounded-lg shadow-lg">
+                    <div class="col-span-1 md:col-span-2">
+                        <label for="tvSearchInput" class="sr-only">Search TV Shows</label>
+                        <input type="text" id="tvSearchInput" placeholder="Search show title or IMDb ID (e.g. tt6048596)..." class="w-full p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-800 placeholder-gray-500">
+                    </div>
+                    <select id="tvLimitFilter" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="20">20 per page</option>
+                        <option value="50">50 per page</option>
+                        <option value="100">100 per page</option>
+                    </select>
+                    <button id="tvSearchButton" class="w-full p-3 bg-indigo-600 hover:bg-indigo-700 rounded-md font-semibold transition-colors duration-300 text-white flex items-center justify-center gap-2">
+                        <i class="fas fa-search"></i> Search TV Shows
+                    </button>
+                </div>
+            </section>
+
+            <div id="currentShowBanner" class="mb-8 hidden"></div>
+
+            <main id="eztv-main">
+                <div id="eztvLoader" class="text-center py-10 hidden"><svg class="animate-spin h-10 w-10 text-gray-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><p class="mt-4 text-lg text-gray-600">Fetching TV torrents...</p></div>
+                <div id="eztvErrorMessage" class="text-center py-10 hidden"><p class="text-red-500 text-xl">Could not fetch TV torrents from EZTV.</p></div>
+                <div id="eztvNoResultsMessage" class="text-center py-10 hidden"><p class="text-yellow-500 text-xl">No TV torrents found on EZTV for this query/IMDb ID.</p></div>
+                <div id="eztvGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+                <footer id="eztvPagination" class="flex justify-center items-center mt-12 space-x-4"></footer>
+            </main>
+
+            <hr class="border-gray-300 my-12">
+
+            <section id="tmdb-tv-section">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4 border-l-4 border-purple-500 pl-4">Discover TV Shows from TMDB</h2>
+                <div class="flex flex-wrap gap-4 items-center p-4 bg-white rounded-lg shadow-lg mb-6">
+                    <div class="flex-grow flex flex-wrap gap-2">
+                        <button data-type="popular" class="tmdb-tv-btn p-3 bg-gray-200 hover:bg-indigo-600 hover:text-white rounded-md font-semibold transition-colors duration-300 active">Popular TV Shows</button>
+                        <button data-type="top_rated" class="tmdb-tv-btn p-3 bg-gray-200 hover:bg-indigo-600 hover:text-white rounded-md font-semibold transition-colors duration-300">Top Rated</button>
+                        <button data-type="on_the_air" class="tmdb-tv-btn p-3 bg-gray-200 hover:bg-indigo-600 hover:text-white rounded-md font-semibold transition-colors duration-300">On The Air</button>
+                    </div>
+                    <select id="tmdbTvYearSelect" class="p-3 bg-gray-100 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">All Years</option>
+                    </select>
+                </div>
+                <div id="tmdb-tv-content" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+            </section>
+        </section>
+
+    </main>
+
+    <!-- Movie Details Modal (for YTS) -->
+    <div id="movieModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden opacity-0">
+        <div id="modalContent" class="bg-gray-800 text-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative transform scale-95"></div>
+    </div>
+
+    <!-- TV Details Modal (for EZTV) -->
+    <div id="tvModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden opacity-0">
+        <div id="tvModalContent" class="bg-gray-800 text-white rounded-lg shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto relative transform scale-95"></div>
+    </div>
+
+    <!-- Copy Notification -->
+    <div id="copyMessage" class="fixed bottom-8 right-8 bg-green-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 opacity-0 transform translate-y-5 transition-all">
+        <i class="fas fa-check-circle text-xl"></i>
+        <span>Copied to clipboard!</span>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="movies.js"></script>
+    <script src="series.js"></script>
+</body>
+</html>

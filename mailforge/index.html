@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MailForge - Domain Headers</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+
+<body class="bg-[#f8fafc] min-h-screen pb-12">
+
+    <!-- Global Suite Nav -->
+    <nav class="bg-white border-b border-slate-200 px-4 sm:px-8 py-3 mb-8 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <a href="../index.html" class="flex items-center gap-2 text-slate-800 font-extrabold text-sm hover:text-blue-600 transition">
+                <span class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-black">TB</span>
+                <span>Toolbox Hub</span>
+            </a>
+            <span class="text-slate-300">/</span>
+            <span class="text-xs font-bold text-slate-500">MailForge</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs font-semibold">
+            <a href="../phone-validator/index.html" class="text-slate-600 hover:text-blue-600 transition">Phone Validator</a>
+            <a href="../moviesearch/index.html" class="text-slate-600 hover:text-blue-600 transition">Movie Search</a>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="bg-white rounded-3xl p-8 mb-8 shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Mail<span class="text-blue-600">Forge</span></h1>
+                <p class="text-slate-500 text-sm mt-1">Exporting with Domain-Specific Headers</p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+                <button onclick="copyAll()" class="px-6 py-3 bg-slate-100 text-slate-700 rounded-2xl text-sm font-bold hover:bg-slate-200 transition">Copy Text</button>
+                <button onclick="exportExcel()" class="px-6 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">Export Excel</button>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <div class="space-y-5">
+                        <div>
+                            <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">Base Username</label>
+                            <input type="text" id="baseName" placeholder="fadolladam"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-semibold" />
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">Quantity</label>
+                            <input type="number" id="count" value="10" min="1"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none font-semibold" />
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">Select Providers</label>
+                            <select id="domains" multiple class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-2 py-2 h-44 focus:ring-2 focus:ring-blue-500 outline-none text-sm custom-scrollbar">
+                                <option value="gmail.com" selected>gmail.com</option>
+                                <option value="yahoo.com" selected>yahoo.com</option>
+                                <option value="yandex.com" selected>yandex.com</option>
+                                <option value="outlook.com" selected>outlook.com</option>
+                                <option value="hotmail.com">hotmail.com</option>
+                                <option value="proton.me">proton.me</option>
+                                <option value="icloud.com">icloud.com</option>
+                            </select>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-100">
+                            <div class="flex items-center gap-3 mb-4">
+                                <input type="checkbox" id="samePassword" class="w-5 h-5 text-blue-600 rounded-lg">
+                                <label for="samePassword" class="text-sm font-bold text-slate-700">Static Password</label>
+                            </div>
+                            <input type="text" id="customPassword" placeholder="Fixed Password"
+                                class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+
+                        <button onclick="generateEmails()" class="w-full bg-slate-900 text-white font-extrabold py-4 rounded-2xl hover:bg-black transition-all transform active:scale-95 shadow-xl">
+                            GENERATE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-8">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden h-[650px] flex flex-col">
+                    <div id="results" class="flex-grow overflow-y-auto p-6 custom-scrollbar space-y-3">
+                        <div class="flex flex-col items-center justify-center h-full text-slate-300">
+                            <p class="font-bold uppercase tracking-widest text-xs text-slate-400">Preview Area</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let exportData = [];
+
+        function randomNumber() { return Math.floor(Math.random() * 89999) + 10000; }
+        
+        function randomBirthday() {
+            const year = Math.floor(Math.random() * (2005 - 1992 + 1)) + 1992;
+            const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
+            const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+            return `${day}/${month}/${year}`;
+        }
+
+        function randomPassword() {
+            const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@";
+            return Array.from({length: 12}, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+        }
+
+        function generateEmails() {
+            const baseName = document.getElementById("baseName").value.trim().toLowerCase();
+            const count = parseInt(document.getElementById("count").value);
+            const samePassword = document.getElementById("samePassword").checked;
+            const customPassword = document.getElementById("customPassword").value;
+            const selectedDomains = Array.from(document.getElementById("domains").selectedOptions).map(opt => opt.value);
+
+            if (!baseName) return alert("Enter base name");
+            if (selectedDomains.length === 0) return alert("Select at least one domain");
+
+            const resultsContainer = document.getElementById("results");
+            resultsContainer.innerHTML = "";
+            exportData = [];
+
+            // Sort order based on your prompt
+            const order = ['gmail.com', 'yahoo.com', 'yandex.com', 'outlook.com', 'hotmail.com', 'proton.me', 'icloud.com'];
+            const activeDomains = order.filter(d => selectedDomains.includes(d));
+
+            for (let i = 0; i < count; i++) {
+                const num = randomNumber();
+                const bday = randomBirthday();
+                const pass = samePassword ? (customPassword || "User@2026") : randomPassword();
+                
+                let rowObject = {};
+                activeDomains.forEach(domain => {
+                    rowObject[domain] = `${baseName}${num}@${domain}`;
+                });
+                rowObject["BOD"] = bday;
+                rowObject["Password"] = pass;
+
+                exportData.push(rowObject);
+
+                const card = document.createElement("div");
+                card.className = "p-4 rounded-2xl border border-slate-100 bg-slate-50 flex justify-between items-center";
+                
+                let emailsHtml = activeDomains.map(d => `<span class="block text-sm font-mono text-slate-600">${baseName}${num}@${d}</span>`).join('');
+
+                card.innerHTML = `
+                    <div>${emailsHtml}</div>
+                    <div class="text-[10px] font-bold text-right">
+                        <div class="text-slate-400">BOD: ${bday}</div>
+                        <div class="text-blue-600">PASS: ${pass}</div>
+                    </div>
+                `;
+                resultsContainer.appendChild(card);
+            }
+        }
+
+        function exportExcel() {
+            if (exportData.length === 0) return alert("Generate data first");
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Accounts");
+            XLSX.writeFile(wb, `MailForge_Accounts.xlsx`);
+        }
+
+        function copyAll() {
+            if (exportData.length === 0) return;
+            const text = exportData.map(row => Object.values(row).join(" | ")).join("\n");
+            navigator.clipboard.writeText(text);
+            alert("Copied!");
+        }
+    </script>
+</body>
+</html>
