@@ -38,16 +38,34 @@ toolbox/
         └── dashboard.js         # Navigation and state persistence
 ```
 
-## Running Locally
+## Running Locally with Docker
 
-Because these utilities are client-side web applications with an optional lightweight PHP proxy for Movie Search:
+Docker Desktop with Compose is required. From this folder, start the single Toolbox
+container:
 
-- **Any static web server or browser**:
-  Open `index.html` directly in your browser or run:
-  ```bash
-  python3 -m http.server 8000
-  ```
-- **With PHP (enables torrent proxy)**:
-  ```bash
-  php -S localhost:8000
-  ```
+```bash
+docker compose up -d --build
+```
+
+Open the hub at <http://localhost:8119>. The utilities are available at:
+
+- Phone Validator: <http://localhost:8119/phone-validator/>
+- MailForge: <http://localhost:8119/mailforge/>
+- Movie & TV Search: <http://localhost:8119/moviesearch/>
+
+The container runs PHP's development web server as a non-root user. This serves the
+static pages and enables `moviesearch/torrent_proxy.php`. No database or application
+secrets are configured. Movie and TV data, posters, and downloads still rely on their
+existing external APIs; external API availability and browser-side API restrictions
+are not verified by the local health check.
+
+```bash
+# Check status and health
+docker compose ps
+
+# Follow logs
+docker compose logs -f web
+
+# Stop the Toolbox container
+docker compose stop
+```

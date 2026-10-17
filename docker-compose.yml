@@ -1,0 +1,30 @@
+name: toolbox
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: toolbox:local
+    container_name: toolbox-web
+    restart: "no"
+    init: true
+    ports:
+      - "127.0.0.1:8119:8080"
+    volumes:
+      - .:/var/www/html:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    healthcheck:
+      test:
+        - CMD
+        - php
+        - -r
+        - "$$s=@file_get_contents('http://127.0.0.1:8080/'); exit($$s===false?1:0);"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
